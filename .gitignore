@@ -1,0 +1,16 @@
+# Ignore application-local.properties (contains sensitive DB creds)
+src/main/resources/application-local.properties
+
+# Ignore IDE/OS files
+.idea/
+.vscode/
+*.iml
+*.class
+*.log
+target/
+bin/
+out/
+
+# OS generated files
+.DS_Store
+Thumbs.db
