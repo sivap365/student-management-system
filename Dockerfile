@@ -1,17 +1,26 @@
-# Use official OpenJDK as base image
-FROM openjdk:17-jdk-slim
+# Use official Maven image to build the app
+FROM maven:3.9.6-eclipse-temurin-17 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy project files
-COPY . .
+# Copy pom.xml and download dependencies (better caching)
+COPY pom.xml .
+COPY mvnw .
+COPY .mvn .mvn
+RUN chmod +x mvnw
+RUN ./mvnw dependency:go-offline -B
 
-# Give execute permission to mvnw
-RUN chmod +x ./mvnw
-
-# Build application (skip tests to make faster)
+# Copy source code and build application
+COPY src src
 RUN ./mvnw clean package -DskipTests
 
-# Run Spring Boot JAR
-CMD ["java", "-jar", "target/*.jar"]
+# Use a smaller JDK image to run the app
+FROM eclipse-temurin:17-jdk
+
+WORKDIR /app
+
+# Copy built JAR from build stage
+COPY --from=build /app/target/*.jar app.jar
+
+# Run the JAR
+ENTRYPOINT ["java", "-jar", "app.jar"]
